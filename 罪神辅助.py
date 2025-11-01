@@ -112,21 +112,12 @@ class GTAKillerApp:
                 # 如果是新检测到的进程，显示提示
                 if not self.process_detected:
                     self.process_detected = True
-                    # 在主线程中显示消息框
-                    self.root.after(0, self.show_process_detected_message)
             else:
                 self.detection_label.config(text=f"进程未运行: {self.target_process}", fg="gray")
             
-            # 每2秒检测一次
+            # 每秒检测一次
             time.sleep(1)
-    
-    def show_process_detected_message(self):
-        """显示进程检测到的提示消息"""
-        messagebox.showinfo(
-            "进程检测", 
-            f"检测到 {self.target_process} 进程已启动！\n按End键可以结束该进程。"
-        )
-    
+
     def on_close(self):
         """窗口关闭时的清理操作"""
         self.detection_running = False
