@@ -25,7 +25,7 @@ class GTAKillerApp:
         # 创建界面元素
         self.label = tk.Label(
             root, 
-            text=f"按End键结束{self.target_process}进程", 
+            text=f"按End键结束GTA进程", 
             font=("SimHei", 12)
         )
         self.label.pack(expand=True)
