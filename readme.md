@@ -17,6 +17,7 @@
 2. 打包
 
 - `pyinstaller --noconsole --onefile ./罪神辅助.py`
+- `pyinstaller --onefile .\挂机.py`
 
 - `dist/` 目录：存放最终生成的可执行文件
 
