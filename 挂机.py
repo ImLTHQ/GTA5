@@ -24,18 +24,15 @@ def main():
     # 模拟按键的核心逻辑
     keyboard = Controller()
     keys = ['w', 'a', 's', 'd']
+    
+    print("自动挂机中...")
 
-    try:
-        while True:
-            key = random.choice(keys)
-            print(f"即将按住 {key.upper()} 键 1 秒...")
-            keyboard.press(key)
-            time.sleep(1)  # 按住1秒
-            keyboard.release(key)
-            print(f"已释放 {key.upper()} 键，等待1秒...\n")
-            time.sleep(1)  # 等待1秒后继续
-    except KeyboardInterrupt:
-        print("\n程序已终止")
+    while True:
+        key = random.choice(keys)
+        keyboard.press(key)
+        time.sleep(1)  # 按住1秒
+        keyboard.release(key)
+        time.sleep(1)  # 等待1秒后继续
 
 if __name__ == "__main__":
     # 检查权限，若不是管理员则提权
