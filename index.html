@@ -182,11 +182,11 @@
       // 如果没有对子建议，则根据软牌或硬牌给出建议
       if (!advice) {
         if (isSoft) {
-          advice = getSoftAdvice(total, dealer);
+          advice = getSoftAdvice(total, dealer, player.length);
           // 如果牌数超过2张且建议是加倍，则改为要牌
           if (player.length > 2 && advice === "加倍") {
             advice = "要牌";
-            detailText += ` | 软牌策略：${getSoftReason(total, dealer, player.length)} (超过2张牌，不能加倍，改为要牌)`;
+            detailText += ` | 软牌策略：${getSoftReason(total, dealer, player.length)} `;
           } else {
             detailText += ` | 软牌策略：${getSoftReason(total, dealer, player.length)}`;
           }
@@ -195,7 +195,7 @@
           // 如果牌数超过2张且建议是加倍，则改为要牌
           if (player.length > 2 && advice === "加倍") {
             advice = "要牌";
-            detailText += ` | 硬牌策略：${getHardReason(total, dealer, player.length)} (超过2张牌，不能加倍，改为要牌)`;
+            detailText += ` | 硬牌策略：${getHardReason(total, dealer, player.length)} `;
           } else {
             detailText += ` | 硬牌策略：${getHardReason(total, dealer, player.length)}`;
           }
@@ -279,7 +279,7 @@
       return "要牌";
     }
 
-    function getSoftAdvice(total, dealer) {
+    function getSoftAdvice(total, dealer, cardCount) {
       // 软牌19-20点：总是停牌
       if (total >= 19) return "停牌";
       
@@ -290,15 +290,15 @@
         return "停牌";
       }
       
-      // 软牌17点：庄家2-6点加倍，庄家7-A要牌
+      // 软牌17点：只有2张牌时(A+6)才考虑加倍，否则要牌
       if (total === 17) {
-        if ([2, 3, 4, 5, 6].includes(dealer)) return "加倍";
+        if (cardCount === 2 && [2, 3, 4, 5, 6].includes(dealer)) return "加倍";
         return "要牌";
       }
       
-      // 软牌16点：庄家2-6点加倍，庄家7-A要牌
+      // 软牌16点：只有2张牌时(A+5)才考虑加倍，否则要牌
       if (total === 16) {
-        if ([2, 3, 4, 5, 6].includes(dealer)) return "加倍";
+        if (cardCount === 2 && [2, 3, 4, 5, 6].includes(dealer)) return "加倍";
         return "要牌";
       }
       
@@ -389,13 +389,15 @@
       }
       if (total === 17) {
         if ([2, 3, 4, 5, 6].includes(dealer)) {
-          return cardCount > 2 ? "软牌17点，庄家弱势，要牌改善" : "软牌17点，庄家弱势，加倍有利";
+          if (cardCount === 2) return "软牌17点(A+6)，庄家弱势，加倍有利";
+          return "软牌17点多张牌，庄家弱势，要牌改善";
         }
         return "软牌，庄家强势，不爆牌，要牌";
       }
       if (total === 16) {
         if ([2, 3, 4, 5, 6].includes(dealer)) {
-          return cardCount > 2 ? "软牌16点，庄家弱势，要牌改善" : "庄家弱势，加倍有利";
+          if (cardCount === 2) return "软牌16点(A+5)，庄家弱势，加倍有利";
+          return "软牌16点多张牌，庄家弱势，要牌改善";
         }
         return "软牌，庄家强势，不爆牌，要牌";
       }
