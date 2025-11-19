@@ -96,7 +96,20 @@
     function parseCard(card) {
       const face = { K: 10, Q: 10, J: 10, A: 11 };
       const val = card.trim().toUpperCase();
-      return face[val] || parseInt(val);
+      
+      // 检查是否为有效的牌面值
+      if (face.hasOwnProperty(val)) {
+        return face[val];
+      }
+      
+      // 检查是否为2-10的数字
+      const num = parseInt(val);
+      if (num >= 2 && num <= 10) {
+        return num;
+      }
+      
+      // 无效牌值返回NaN
+      return NaN;
     }
 
     function calculateHandValue(cards) {
