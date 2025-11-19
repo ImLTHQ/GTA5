@@ -290,9 +290,9 @@
         return "停牌";
       }
       
-      // 软牌17点：庄家2-6点停牌，庄家7-A要牌
+      // 软牌17点：庄家2-6点加倍，庄家7-A要牌
       if (total === 17) {
-        if ([2, 3, 4, 5, 6].includes(dealer)) return "停牌";
+        if ([2, 3, 4, 5, 6].includes(dealer)) return "加倍";
         return "要牌";
       }
       
@@ -384,7 +384,7 @@
         return "庄家很强，停牌保守";
       }
       if (total === 17) {
-        if ([2, 3, 4, 5, 6].includes(dealer)) return "软牌17点，庄家弱势，停牌有利";
+        if ([2, 3, 4, 5, 6].includes(dealer)) return "软牌17点，庄家弱势，加倍有利";
         return "软牌，庄家强势，不爆牌，要牌";
       }
       if (total === 16) {
