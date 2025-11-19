@@ -114,15 +114,17 @@
 
     function calculateHandValue(cards) {
       let total = cards.reduce((acc, val) => acc + val, 0);
-      let aces = cards.filter(val => val === 11).length;
+      let totalAces = cards.filter(val => val === 11).length;
+      let acesAsEleven = totalAces;
       
       // 处理软牌的情况：如果总点数超过21且有A，将A从11点调整为1点
-      while (total > 21 && aces > 0) {
+      while (total > 21 && acesAsEleven > 0) {
         total -= 10;
-        aces--;
+        acesAsEleven--;
       }
       
-      return { total, isSoft: aces > 0 };
+      // 只要有A在牌中，且至少有一张A算作11点，就是软牌
+      return { total, isSoft: totalAces > 0 && acesAsEleven > 0 };
     }
 
     function isPair(cards) {
@@ -288,8 +290,14 @@
         return "停牌";
       }
       
-      // 软牌16-17点：庄家2-6点加倍，庄家7-A要牌
-      if (total >= 16 && total <= 17) {
+      // 软牌17点：庄家2-6点停牌，庄家7-A要牌
+      if (total === 17) {
+        if ([2, 3, 4, 5, 6].includes(dealer)) return "停牌";
+        return "要牌";
+      }
+      
+      // 软牌16点：庄家2-6点加倍，庄家7-A要牌
+      if (total === 16) {
         if ([2, 3, 4, 5, 6].includes(dealer)) return "加倍";
         return "要牌";
       }
@@ -375,9 +383,13 @@
         if ([7, 8].includes(dealer)) return "需要改善手牌，要牌";
         return "庄家很强，停牌保守";
       }
-      if (total >= 16 && total <= 17) {
+      if (total === 17) {
+        if ([2, 3, 4, 5, 6].includes(dealer)) return "软牌17点，庄家弱势，停牌有利";
+        return "软牌，庄家强势，不爆牌，要牌";
+      }
+      if (total === 16) {
         if ([2, 3, 4, 5, 6].includes(dealer)) return "庄家弱势，加倍有利";
-        return "需要改善手牌，要牌";
+        return "软牌，庄家强势，不爆牌，要牌";
       }
       return "软牌爆牌风险低，要牌";
     }
