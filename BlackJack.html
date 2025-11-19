@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GTA V 21点辅助工具</title>
+  <style>
+    body {
+      background-color: #0a0a0a;
+      color: white;
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 1rem;
+    }
+    .card {
+      background-color: #18181b;
+      border-radius: 1rem;
+      padding: 2rem;
+      max-width: 400px;
+      width: 100%;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    }
+    input {
+      width: 100%;
+      padding: 0.75rem;
+      margin-top: 1rem;
+      border-radius: 0.75rem;
+      border: none;
+      background-color: #27272a;
+      color: white;
+      font-size: 1rem;
+    }
+    .btn-row {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 1.5rem;
+    }
+    button {
+      flex: 1;
+      margin: 0 0.25rem;
+      padding: 0.75rem;
+      border: none;
+      border-radius: 0.75rem;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    .btn-green {
+      background-color: #16a34a;
+      color: white;
+    }
+    .btn-green:hover {
+      background-color: #22c55e;
+    }
+    .btn-red {
+      background-color: #dc2626;
+      color: white;
+    }
+    .btn-red:hover {
+      background-color: #ef4444;
+    }
+    #output {
+      text-align: center;
+      margin-top: 1.5rem;
+      font-size: 1.25rem;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1 style="text-align:center; font-size: 1.5rem;">GTA V 21点辅助工具</h1>
+    <input id="playerCards" type="text" placeholder="输入你的牌（例如：7 5 A）" />
+    <input id="dealerCard" type="text" placeholder="输入庄家牌（例如：K）" />
+    <div class="btn-row">
+      <button class="btn-green" onclick="getAdvice()">获取建议</button>
+      <button class="btn-red" onclick="resetFields()">重置</button>
+    </div>
+    <div id="output"></div>
+  </div>
+  <script>
+    function parseCard(card) {
+      const face = { K: 10, Q: 10, J: 10, A: 11 };
+      const val = card.trim().toUpperCase();
+      return face[val] || parseInt(val);
+    }
+
+    function getAdvice() {
+      const playerInput = document.getElementById("playerCards").value;
+      const dealerInput = document.getElementById("dealerCard").value;
+      const output = document.getElementById("output");
+
+      const player = playerInput.split(/[\s,]+/).map(parseCard).filter(n => !isNaN(n));
+      const dealer = parseCard(dealerInput);
+
+      if (player.length < 2 || isNaN(dealer)) {
+        output.textContent = "请输入至少两张有效的玩家牌和一张有效的庄家牌。";
+        output.style.color = "#f87171";
+        return;
+      }
+
+      const total = player.reduce((acc, val) => acc + val, 0);
+      if (total > 21) {
+        output.textContent = "总点数超过21。请检查你的牌值。";
+        output.style.color = "#f87171";
+        return;
+      }
+
+      const [card1, card2] = player;
+      const dealerStrong = [7, 8, 9, 10, 11];
+      const dealerWeak = [2, 3, 4, 5, 6];
+
+      let advice;
+      if (player.length === 2 && card1 === card2 && [2, 3, 6, 7, 8].includes(card1) && dealer <= 7) {
+        advice = "分牌";
+      } else if (player.length === 2 && total >= 9 && total <= 11 && dealer <= 9) {
+        advice = "加倍";
+      } else if (total >= 17) {
+        advice = "停牌";
+      } else if (total >= 13 && total <= 16 && dealerWeak.includes(dealer)) {
+        advice = "停牌";
+      } else if (total === 12 && [4, 5, 6].includes(dealer)) {
+        advice = "停牌";
+      } else {
+        advice = "要牌";
+      }
+
+      output.textContent = `最佳操作：${advice}`;
+      output.style.color = "#facc15";
+    }
+
+    function resetFields() {
+      document.getElementById("playerCards").value = "";
+      document.getElementById("dealerCard").value = "";
+      document.getElementById("output").textContent = "";
+    }
+  </script>
+</body>
+</html>
