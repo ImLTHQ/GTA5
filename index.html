@@ -319,14 +319,9 @@
       
       // 分牌后对6：要牌（12点需要改善）
       if (pairValue === 6) return "要牌";
-      
-      // 分牌后对5：要牌（10点，要牌）
-      if (pairValue === 5) return "要牌";
-      
-      // 分牌后对4、对2、对3：要牌（低点数，必须要牌）
-      if ([2, 3, 4].includes(pairValue)) return "要牌";
-      
-      return "要牌";
+
+      // 必须要牌
+      if ([2, 3, 4, 5].includes(pairValue)) return "要牌";
     }
 
     function getHardReason(total, dealer) {
