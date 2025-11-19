@@ -186,18 +186,18 @@
           // 如果牌数超过2张且建议是加倍，则改为要牌
           if (player.length > 2 && advice === "加倍") {
             advice = "要牌";
-            detailText += ` | 软牌策略：${getSoftReason(total, dealer)} (超过2张牌，不能加倍，改为要牌)`;
+            detailText += ` | 软牌策略：${getSoftReason(total, dealer, player.length)} (超过2张牌，不能加倍，改为要牌)`;
           } else {
-            detailText += ` | 软牌策略：${getSoftReason(total, dealer)}`;
+            detailText += ` | 软牌策略：${getSoftReason(total, dealer, player.length)}`;
           }
         } else {
           advice = getHardAdvice(total, dealer);
           // 如果牌数超过2张且建议是加倍，则改为要牌
           if (player.length > 2 && advice === "加倍") {
             advice = "要牌";
-            detailText += ` | 硬牌策略：${getHardReason(total, dealer)} (超过2张牌，不能加倍，改为要牌)`;
+            detailText += ` | 硬牌策略：${getHardReason(total, dealer, player.length)} (超过2张牌，不能加倍，改为要牌)`;
           } else {
-            detailText += ` | 硬牌策略：${getHardReason(total, dealer)}`;
+            detailText += ` | 硬牌策略：${getHardReason(total, dealer, player.length)}`;
           }
         }
       }
@@ -358,7 +358,7 @@
       if ([2, 3, 4].includes(pairValue)) return "要牌";
     }
 
-    function getHardReason(total, dealer) {
+    function getHardReason(total, dealer, cardCount = 2) {
       if (total >= 17) return "17点及以上总是停牌";
       if (total >= 13 && total <= 16) {
         if ([2, 3, 4, 5, 6].includes(dealer)) return "庄家弱势，保守停牌";
@@ -368,15 +368,19 @@
         if ([4, 5, 6].includes(dealer)) return "庄家最容易爆牌，停牌有利";
         return "需要改善手牌，要牌";
       }
-      if (total === 11) return "11点总是加倍，很强";
+      if (total === 11) {
+        return cardCount > 2 ? "11点，要牌改善" : "11点总是加倍，很强";
+      }
       if (total === 10) {
-        if ([2, 3, 4, 5, 6, 7, 8, 9].includes(dealer)) return "庄家弱势，加倍有利";
+        if ([2, 3, 4, 5, 6, 7, 8, 9].includes(dealer)) {
+          return cardCount > 2 ? "10点，庄家弱势，要牌改善" : "庄家弱势，加倍有利";
+        }
         return "庄家强势，要牌更安全";
       }
       return "9点及以下总是要牌";
     }
 
-    function getSoftReason(total, dealer) {
+    function getSoftReason(total, dealer, cardCount = 2) {
       if (total >= 19) return "19点及以上总是停牌";
       if (total === 18) {
         if ([2, 3, 4, 5, 6].includes(dealer)) return "庄家弱势，停牌有利";
@@ -384,11 +388,15 @@
         return "庄家很强，停牌保守";
       }
       if (total === 17) {
-        if ([2, 3, 4, 5, 6].includes(dealer)) return "软牌17点，庄家弱势，加倍有利";
+        if ([2, 3, 4, 5, 6].includes(dealer)) {
+          return cardCount > 2 ? "软牌17点，庄家弱势，要牌改善" : "软牌17点，庄家弱势，加倍有利";
+        }
         return "软牌，庄家强势，不爆牌，要牌";
       }
       if (total === 16) {
-        if ([2, 3, 4, 5, 6].includes(dealer)) return "庄家弱势，加倍有利";
+        if ([2, 3, 4, 5, 6].includes(dealer)) {
+          return cardCount > 2 ? "软牌16点，庄家弱势，要牌改善" : "庄家弱势，加倍有利";
+        }
         return "软牌，庄家强势，不爆牌，要牌";
       }
       return "软牌爆牌风险低，要牌";
