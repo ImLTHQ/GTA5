@@ -1,4 +1,25 @@
 <!DOCTYPE html>
+<!--
+  GTA 21点辅助工具
+  
+  功能说明：
+  - 基于基础策略的21点最优决策系统
+  - 支持对子、软牌、硬牌的完整策略分析
+  - 提供详细的决策理由和胜率分析
+  
+  使用方法：
+  1. 输入你的手牌（用空格分隔，如：7 5 A）
+  2. 输入庄家明牌（如：K）
+  3. 点击"获取建议"获得最佳操作
+  
+  可能的结果和建议：
+  - 停牌(Stand)：保持当前点数，不再要牌
+  - 要牌(Hit)：再拿一张牌
+  - 加倍(Double)：加倍赌注并只拿一张牌
+  - 分牌(Split)：将对子分成两手牌
+  
+  策略优先级：对子策略 > 软牌策略 > 硬牌策略
+-->
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -81,18 +102,60 @@
   </style>
 </head>
 <body>
+  <!-- GTA 21点辅助工具主界面 -->
+  <!-- 使用说明： -->
+  <!-- 1. 输入你的手牌：用空格分隔，如"7 5 A"表示7点、5点、A -->
+  <!-- 2. 输入庄家明牌：庄家展示的一张牌，如"K" -->
+  <!-- 3. 点击"获取建议"获得最佳策略 -->
+  <!-- 4. 建议包括：停牌、要牌、加倍、分牌 -->
   <div class="card">
     <h1 style="text-align:center; font-size: 1.5rem;">GTA 21点辅助工具</h1>
+    
+    <!-- 玩家手牌输入框 -->
     <input id="playerCards" type="text" placeholder="输入你的牌（例如：7 5 A）" />
+    
+    <!-- 庄家明牌输入框 -->
     <input id="dealerCard" type="text" placeholder="输入庄家牌（例如：K）" />
+    
+    <!-- 操作按钮组 -->
     <div class="btn-row">
       <button class="btn-green" onclick="getAdvice()">获取建议</button>
       <button class="btn-red" onclick="resetFields()">重置</button>
     </div>
+    
+    <!-- 主要建议输出区域 -->
     <div id="output"></div>
+    
+    <!-- 详细策略说明区域 -->
     <div id="details" style="margin-top: 1rem; font-size: 0.9rem; color: #6b7280;"></div>
   </div>
   <script>
+    /**
+     * 21点辅助工具 - 基于基础策略的决策系统
+     * 
+     * 可能的结果和建议说明：
+     * 1. 停牌(Stand): 保持当前点数，不再要牌
+     *    - 适用于17点及以上硬牌，或19点及以上软牌
+     *    - 目标：避免爆牌，让庄家先爆牌
+     * 
+     * 2. 要牌(Hit): 再拿一张牌
+     *    - 适用于点数较低需要改善的情况
+     *    - 目标：提高点数以击败庄家
+     * 
+     * 3. 加倍(Double): 加倍赌注并只拿一张牌
+     *    - 适用于优势明显的局面
+     *    - 目标：最大化收益
+     * 
+     * 4. 分牌(Split): 将对子分成两手牌
+     *    - 适用于两张相同点数的牌
+     *    - 目标：将劣势局面转为优势局面
+     */
+
+    /**
+     * 解析单张牌的值
+     * @param {string} card - 片面值 (如: "K", "7", "A")
+     * @returns {number} 牌的数值，无效返回NaN
+     */
     function parseCard(card) {
       const face = { K: 10, Q: 10, J: 10, A: 11 };
       const val = card.trim().toUpperCase();
@@ -112,6 +175,16 @@
       return NaN;
     }
 
+    /**
+     * 计算手牌总点数和是否为软牌
+     * @param {number[]} cards - 牌值数组
+     * @returns {object} {total: 总点数, isSoft: 是否为软牌}
+     * 
+     * 软牌说明：
+     * - 软牌：手中有A且A算作11点，总点数不会爆牌
+     * - 硬牌：没有A，或所有A都算作1点
+     * - 软牌优势：可以安全要牌而不爆牌
+     */
     function calculateHandValue(cards) {
       let total = cards.reduce((acc, val) => acc + val, 0);
       let totalAces = cards.filter(val => val === 11).length;
@@ -127,10 +200,24 @@
       return { total, isSoft: totalAces > 0 && acesAsEleven > 0 };
     }
 
+    /**
+     * 检查是否为对子
+     * @param {number[]} cards - 牌值数组
+     * @returns {boolean} 是否为对子
+     */
     function isPair(cards) {
       return cards.length === 2 && cards[0] === cards[1];
     }
 
+    /**
+     * 获取21点最佳建议
+     * 决策优先级：对子策略 > 软牌策略 > 硬牌策略
+     * 
+     * 策略说明：
+     * 1. 对子策略：两张相同牌时的特殊处理
+     * 2. 软牌策略：包含A的灵活手牌
+     * 3. 硬牌策略：普通点数手牌
+     */
     function getAdvice() {
       const playerInput = document.getElementById("playerCards").value;
       const dealerInput = document.getElementById("dealerCard").value;
@@ -149,7 +236,7 @@
 
       const { total, isSoft } = calculateHandValue(player);
       if (total > 21) {
-        output.textContent = "总点数超过21。请检查你的牌值。";
+        output.textContent = "爆牌";
         output.style.color = "#f87171";
         details.textContent = "";
         return;
@@ -207,41 +294,57 @@
       details.textContent = detailText;
     }
 
+    /**
+     * 对子策略决策
+     * 对子分牌的优势：将一手牌变成两手，增加获胜机会
+     * 
+     * @param {number} pairValue - 对子的值
+     * @param {number} dealer - 庄家明牌值
+     * @returns {string} 建议：分牌/不分牌/加倍/要牌
+     */
     function getPairAdvice(pairValue, dealer) {
       // 对A：总是分牌
+      // 理由：两张A分牌后，每张都有机会拿到10点形成21点
       if (pairValue === 11) return "分牌";
       
       // 对8：总是分牌
+      // 理由：16点是最差的硬牌，分牌后有机会形成更好的手牌
       if (pairValue === 8) return "分牌";
       
       // 对10、J、Q、K：从不分牌
+      // 理由：20点已经是极好的手牌，分牌反而可能降低胜率
       if (pairValue === 10) return "不分牌";
       
       // 对9：庄家2-6点、8-9点分牌，庄家7点、10点、A不分牌
+      // 理由：18点不错，但在庄家弱势时分牌更有利
       if (pairValue === 9) {
         if ([2, 3, 4, 5, 6, 8, 9].includes(dealer)) return "分牌";
         return "不分牌";
       }
       
       // 对7：庄家2-7点分牌，庄家8-A不分牌
+      // 理由：14点不算好，在庄家弱势时分牌有机会
       if (pairValue === 7) {
         if ([2, 3, 4, 5, 6, 7].includes(dealer)) return "分牌";
         return "不分牌";
       }
       
       // 对6：庄家2-6点分牌，庄家7-A不分牌
+      // 理由：12点很差，在庄家弱势时分牌是唯一机会
       if (pairValue === 6) {
         if ([2, 3, 4, 5, 6].includes(dealer)) return "分牌";
         return "不分牌";
       }
       
       // 对5：庄家2-9点加倍，庄家10点、A要牌
+      // 理由：10点很好，在庄家弱势时加倍有利
       if (pairValue === 5) {
         if ([2, 3, 4, 5, 6, 7, 8, 9].includes(dealer)) return "加倍";
         return "要牌";
       }
       
       // 对4、对2、对3：庄家2-7点分牌，庄家8-A不分牌
+      // 理由：点数很低，只有在庄家弱势时才冒险分牌
       if ([2, 3, 4].includes(pairValue)) {
         if ([2, 3, 4, 5, 6, 7].includes(dealer)) return "分牌";
         return "不分牌";
@@ -250,40 +353,65 @@
       return "";
     }
 
+    /**
+     * 硬牌策略决策
+     * 硬牌特点：没有A或A算作1点，要牌有爆牌风险
+     * 
+     * @param {number} total - 手牌总点数
+     * @param {number} dealer - 庄家明牌值
+     * @returns {string} 建议：停牌/要牌/加倍
+     */
     function getHardAdvice(total, dealer) {
       // 硬牌17点及以上：总是停牌
+      // 理由：点数已经很高，爆牌风险大于收益
       if (total >= 17) return "停牌";
       
       // 硬牌13-16点：庄家2-6点停牌，庄家7-A要牌
+      // 理由：中等点数，庄家弱势时保守，强势时冒险
       if (total >= 13 && total <= 16) {
         if ([2, 3, 4, 5, 6].includes(dealer)) return "停牌";
         return "要牌";
       }
       
       // 硬牌12点：庄家2-3点要牌，庄家4-6点停牌，庄家7-A要牌
+      // 理由：12点很危险，只有在庄家最容易爆牌时才停牌
       if (total === 12) {
         if ([4, 5, 6].includes(dealer)) return "停牌";
         return "要牌";
       }
       
       // 硬牌11点：总是加倍
+      // 理由：11点极佳，有30%机会拿到21点，加倍收益最大
       if (total === 11) return "加倍";
       
       // 硬牌10点：庄家2-9点加倍，庄家10点、A要牌
+      // 理由：10点很好，在庄家弱势时加倍有利
       if (total === 10) {
         if ([2, 3, 4, 5, 6, 7, 8, 9].includes(dealer)) return "加倍";
         return "要牌";
       }
       
       // 硬牌9点及以下：总是要牌
+      // 理由：点数太低，必须要牌改善
       return "要牌";
     }
 
+    /**
+     * 软牌策略决策
+     * 软牌特点：包含A且A算作11点，要牌不会爆牌（最多变为硬牌）
+     * 
+     * @param {number} total - 手牌总点数
+     * @param {number} dealer - 庄家明牌值
+     * @param {number} cardCount - 手牌数量
+     * @returns {string} 建议：停牌/要牌/加倍
+     */
     function getSoftAdvice(total, dealer, cardCount) {
       // 软牌19-20点：总是停牌
+      // 理由：点数已经很高，改善空间有限，停牌保守
       if (total >= 19) return "停牌";
       
       // 软牌18点：庄家2-6点停牌，庄家7-8点要牌，庄家9-10点、A停牌
+      // 理由：18点不错，但根据庄家强弱决定是否冒险
       if (total === 18) {
         if ([2, 3, 4, 5, 6].includes(dealer)) return "停牌";
         if ([7, 8].includes(dealer)) return "要牌";
@@ -291,18 +419,21 @@
       }
       
       // 软牌17点：只有2张牌时(A+6)才考虑加倍，否则要牌
+      // 理由：软17很灵活，初始手牌时可以加倍，多张牌时保守
       if (total === 17) {
         if (cardCount === 2 && [2, 3, 4, 5, 6].includes(dealer)) return "加倍";
         return "要牌";
       }
       
       // 软牌16点：只有2张牌时(A+5)才考虑加倍，否则要牌
+      // 理由：软16同样灵活，在庄家弱势时可以加倍
       if (total === 16) {
         if (cardCount === 2 && [2, 3, 4, 5, 6].includes(dealer)) return "加倍";
         return "要牌";
       }
       
       // 软牌13-15点：总是要牌
+      // 理由：点数较低，软牌优势明显，必须要牌改善
       return "要牌";
     }
 
@@ -404,6 +535,10 @@
       return "软牌爆牌风险低，要牌";
     }
 
+    /**
+     * 重置所有输入和输出字段
+     * 清空界面，准备下一次分析
+     */
     function resetFields() {
       document.getElementById("playerCards").value = "";
       document.getElementById("dealerCard").value = "";
