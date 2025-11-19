@@ -184,15 +184,19 @@
           // 如果牌数超过2张且建议是加倍，则改为要牌
           if (player.length > 2 && advice === "加倍") {
             advice = "要牌";
+            detailText += ` | 软牌策略：${getSoftReason(total, dealer)} (超过2张牌，不能加倍，改为要牌)`;
+          } else {
+            detailText += ` | 软牌策略：${getSoftReason(total, dealer)}`;
           }
-          detailText += ` | 软牌策略：${getSoftReason(total, dealer)}`;
         } else {
           advice = getHardAdvice(total, dealer);
           // 如果牌数超过2张且建议是加倍，则改为要牌
           if (player.length > 2 && advice === "加倍") {
             advice = "要牌";
+            detailText += ` | 硬牌策略：${getHardReason(total, dealer)} (超过2张牌，不能加倍，改为要牌)`;
+          } else {
+            detailText += ` | 硬牌策略：${getHardReason(total, dealer)}`;
           }
-          detailText += ` | 硬牌策略：${getHardReason(total, dealer)}`;
         }
       }
 
