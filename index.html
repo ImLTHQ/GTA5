@@ -151,8 +151,16 @@
 
       // 对子决策优先级最高
       if (isPair(player)) {
-        advice = getPairAdvice(card1, dealer);
-        detailText += ` | 对子策略：${getPairReason(card1, dealer)}`;
+        const pairAdvice = getPairAdvice(card1, dealer);
+        if (pairAdvice === "分牌") {
+          advice = "分牌";
+          // 分牌后每手牌的建议
+          const afterSplitAdvice = getHardAdvice(card1, dealer);
+          detailText += ` | 对子策略：${getPairReason(card1, dealer)} | 分牌后建议：${afterSplitAdvice}`;
+        } else {
+          advice = pairAdvice;
+          detailText += ` | 对子策略：${getPairReason(card1, dealer)}`;
+        }
       }
       
       // 如果没有对子建议，则根据软牌或硬牌给出建议
