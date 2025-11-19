@@ -171,8 +171,9 @@
           const afterSplitPairAdvice = getAfterSplitPairAdvice(card1, dealer);
           detailText += ` | 对子策略：${getPairReason(card1, dealer)} | 分牌后若一侧仍为对子：${afterSplitPairAdvice}`;
         } else {
-          advice = pairAdvice;
-          detailText += ` | 对子策略：${getPairReason(card1, dealer)}`;
+          // 对子策略不是分牌时，继续使用硬牌策略
+          advice = getHardAdvice(total, dealer);
+          detailText += ` | 对子策略：${getPairReason(card1, dealer)} | 硬牌策略：${getHardReason(total, dealer)}`;
         }
       }
       
