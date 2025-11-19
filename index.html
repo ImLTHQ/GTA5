@@ -154,9 +154,9 @@
         const pairAdvice = getPairAdvice(card1, dealer);
         if (pairAdvice === "分牌") {
           advice = "分牌";
-          // 分牌后每手牌的建议
-          const afterSplitAdvice = getHardAdvice(card1, dealer);
-          detailText += ` | 对子策略：${getPairReason(card1, dealer)} | 分牌后建议：${afterSplitAdvice}`;
+          // 分牌后如果某一侧又形成对子的建议
+          const afterSplitPairAdvice = getAfterSplitPairAdvice(card1, dealer);
+          detailText += ` | 对子策略：${getPairReason(card1, dealer)} | 分牌后若一侧仍为对子：${afterSplitPairAdvice}`;
         } else {
           advice = pairAdvice;
           detailText += ` | 对子策略：${getPairReason(card1, dealer)}`;
@@ -297,6 +297,36 @@
         return "庄家强势，不分牌更安全";
       }
       return "";
+    }
+
+    function getAfterSplitPairAdvice(pairValue, dealer) {
+      // 分牌后如果某一侧又形成对子，通常不能再分牌，给出要牌/停牌建议
+      
+      // 分牌后对A：要牌（软牌12点，很好的起点）
+      if (pairValue === 11) return "要牌";
+      
+      // 分牌后对8：要牌（16点硬牌，需要改善）
+      if (pairValue === 8) return "要牌";
+      
+      // 分牌后对10、J、Q、K：停牌（20点很强）
+      if (pairValue === 10) return "停牌";
+      
+      // 分牌后对9：要牌（18点不错，但可以冒险）
+      if (pairValue === 9) return "要牌";
+      
+      // 分牌后对7：要牌（14点需要改善）
+      if (pairValue === 7) return "要牌";
+      
+      // 分牌后对6：要牌（12点需要改善）
+      if (pairValue === 6) return "要牌";
+      
+      // 分牌后对5：要牌（10点，可以冒险要牌）
+      if (pairValue === 5) return "要牌";
+      
+      // 分牌后对4、对2、对3：要牌（低点数，必须要牌）
+      if ([2, 3, 4].includes(pairValue)) return "要牌";
+      
+      return "要牌";
     }
 
     function getHardReason(total, dealer) {
