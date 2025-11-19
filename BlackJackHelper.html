@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GTA V 21点辅助工具</title>
+  <style>
+    body {
+      background-color: #0a0a0a;
+      color: white;
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 1rem;
+    }
+    .card {
+      background-color: #18181b;
+      border-radius: 1rem;
+      padding: 2rem;
+      max-width: 400px;
+      width: 100%;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    }
+    input {
+      width: 100%;
+      padding: 0.75rem;
+      margin-top: 1rem;
+      border-radius: 0.75rem;
+      border: none;
+      background-color: #27272a;
+      color: white;
+      font-size: 1rem;
+    }
+    .btn-row {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 1.5rem;
+    }
+    button {
+      flex: 1;
+      margin: 0 0.25rem;
+      padding: 0.75rem;
+      border: none;
+      border-radius: 0.75rem;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    .btn-green {
+      background-color: #16a34a;
+      color: white;
+    }
+    .btn-green:hover {
+      background-color: #22c55e;
+    }
+    .btn-red {
+      background-color: #dc2626;
+      color: white;
+    }
+    .btn-red:hover {
+      background-color: #ef4444;
+    }
+    #output {
+      text-align: center;
+      margin-top: 1.5rem;
+      font-size: 1.25rem;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1 style="text-align:center; font-size: 1.5rem;">GTA V 21点辅助工具</h1>
+    <input id="playerCards" type="text" placeholder="输入你的牌（例如：7 5 A）" />
+    <input id="dealerCard" type="text" placeholder="输入庄家牌（例如：K）" />
+    <div class="btn-row">
+      <button class="btn-green" onclick="getAdvice()">获取建议</button>
+      <button class="btn-red" onclick="resetFields()">重置</button>
+    </div>
+    <div id="output"></div>
+    <div id="details" style="margin-top: 1rem; font-size: 0.9rem; color: #a1a1aa;"></div>
+  </div>
+  <script>
+    function parseCard(card) {
+      const face = { K: 10, Q: 10, J: 10, A: 11 };
+      const val = card.trim().toUpperCase();
+      return face[val] || parseInt(val);
+    }
+
+    function calculateHandValue(cards) {
+      let total = cards.reduce((acc, val) => acc + val, 0);
+      let aces = cards.filter(val => val === 11).length;
+      
+      // 处理软牌的情况：如果总点数超过21且有A，将A从11点调整为1点
+      while (total > 21 && aces > 0) {
+        total -= 10;
+        aces--;
+      }
+      
+      return { total, isSoft: aces > 0 };
+    }
+
+    function isPair(cards) {
+      return cards.length === 2 && cards[0] === cards[1];
+    }
+
+    function getAdvice() {
+      const playerInput = document.getElementById("playerCards").value;
+      const dealerInput = document.getElementById("dealerCard").value;
+      const output = document.getElementById("output");
+      const details = document.getElementById("details");
+
+      const player = playerInput.split(/[\s,]+/).map(parseCard).filter(n => !isNaN(n));
+      const dealer = parseCard(dealerInput);
+
+      if (player.length < 2 || isNaN(dealer)) {
+        output.textContent = "请输入至少两张有效的玩家牌和一张有效的庄家牌。";
+        output.style.color = "#f87171";
+        details.textContent = "";
+        return;
+      }
+
+      const { total, isSoft } = calculateHandValue(player);
+      if (total > 21) {
+        output.textContent = "总点数超过21。请检查你的牌值。";
+        output.style.color = "#f87171";
+        details.textContent = "";
+        return;
+      }
+
+      let advice = "";
+      let detailText = "";
+      const [card1, card2] = player;
+
+      // 显示手牌信息
+      const handType = isSoft ? "软牌" : "硬牌";
+      const pairInfo = isPair(player) ? "对子" : "";
+      detailText = `手牌：${total}点 (${handType}${pairInfo ? ", " + pairInfo : ""}) | 庄家：${dealer}点`;
+
+      // 对子决策优先级最高
+      if (isPair(player)) {
+        advice = getPairAdvice(card1, dealer);
+        detailText += ` | 对子策略：${getPairReason(card1, dealer)}`;
+      }
+      
+      // 如果没有对子建议，则根据软牌或硬牌给出建议
+      if (!advice) {
+        if (isSoft) {
+          advice = getSoftAdvice(total, dealer);
+          detailText += ` | 软牌策略：${getSoftReason(total, dealer)}`;
+        } else {
+          advice = getHardAdvice(total, dealer);
+          detailText += ` | 硬牌策略：${getHardReason(total, dealer)}`;
+        }
+      }
+
+      output.textContent = `最佳操作：${advice}`;
+      output.style.color = "#facc15";
+      details.textContent = detailText;
+    }
+
+    function getPairAdvice(pairValue, dealer) {
+      // 对A：总是分牌
+      if (pairValue === 11) return "分牌";
+      
+      // 对8：总是分牌
+      if (pairValue === 8) return "分牌";
+      
+      // 对10、J、Q、K：从不分牌
+      if (pairValue === 10) return "不分牌";
+      
+      // 对9：庄家2-6点、8-9点分牌，庄家7点、10点、A不分牌
+      if (pairValue === 9) {
+        if ([2, 3, 4, 5, 6, 8, 9].includes(dealer)) return "分牌";
+        return "不分牌";
+      }
+      
+      // 对7：庄家2-7点分牌，庄家8-A不分牌
+      if (pairValue === 7) {
+        if ([2, 3, 4, 5, 6, 7].includes(dealer)) return "分牌";
+        return "不分牌";
+      }
+      
+      // 对6：庄家2-6点分牌，庄家7-A不分牌
+      if (pairValue === 6) {
+        if ([2, 3, 4, 5, 6].includes(dealer)) return "分牌";
+        return "不分牌";
+      }
+      
+      // 对5：庄家2-9点加倍，庄家10点、A要牌
+      if (pairValue === 5) {
+        if ([2, 3, 4, 5, 6, 7, 8, 9].includes(dealer)) return "加倍";
+        return "要牌";
+      }
+      
+      // 对4、对2、对3：庄家2-7点分牌，庄家8-A不分牌
+      if ([2, 3, 4].includes(pairValue)) {
+        if ([2, 3, 4, 5, 6, 7].includes(dealer)) return "分牌";
+        return "不分牌";
+      }
+      
+      return "";
+    }
+
+    function getHardAdvice(total, dealer) {
+      // 硬牌17点及以上：总是停牌
+      if (total >= 17) return "停牌";
+      
+      // 硬牌13-16点：庄家2-6点停牌，庄家7-A要牌
+      if (total >= 13 && total <= 16) {
+        if ([2, 3, 4, 5, 6].includes(dealer)) return "停牌";
+        return "要牌";
+      }
+      
+      // 硬牌12点：庄家2-3点要牌，庄家4-6点停牌，庄家7-A要牌
+      if (total === 12) {
+        if ([4, 5, 6].includes(dealer)) return "停牌";
+        return "要牌";
+      }
+      
+      // 硬牌11点：总是加倍
+      if (total === 11) return "加倍";
+      
+      // 硬牌10点：庄家2-9点加倍，庄家10点、A要牌
+      if (total === 10) {
+        if ([2, 3, 4, 5, 6, 7, 8, 9].includes(dealer)) return "加倍";
+        return "要牌";
+      }
+      
+      // 硬牌9点及以下：总是要牌
+      return "要牌";
+    }
+
+    function getSoftAdvice(total, dealer) {
+      // 软牌19-20点：总是停牌
+      if (total >= 19) return "停牌";
+      
+      // 软牌18点：庄家2-6点停牌，庄家7-8点要牌，庄家9-10点、A停牌
+      if (total === 18) {
+        if ([2, 3, 4, 5, 6].includes(dealer)) return "停牌";
+        if ([7, 8].includes(dealer)) return "要牌";
+        return "停牌";
+      }
+      
+      // 软牌16-17点：庄家2-6点加倍，庄家7-A要牌
+      if (total >= 16 && total <= 17) {
+        if ([2, 3, 4, 5, 6].includes(dealer)) return "加倍";
+        return "要牌";
+      }
+      
+      // 软牌13-15点：总是要牌
+      return "要牌";
+    }
+
+    function getPairReason(pairValue, dealer) {
+      if (pairValue === 11) return "A对总是分牌，两张黑杰克的机会";
+      if (pairValue === 8) return "8对总是分牌，16点是最差硬牌";
+      if (pairValue === 10) return "10点对从不分牌，20点已很强";
+      if (pairValue === 9) {
+        if ([2, 3, 4, 5, 6, 8, 9].includes(dealer)) return "庄家弱势或中等，分牌有利";
+        return "庄家强势，不分牌更安全";
+      }
+      if (pairValue === 7) {
+        if ([2, 3, 4, 5, 6, 7].includes(dealer)) return "庄家弱势，分牌有机会";
+        return "庄家强势，不分牌更安全";
+      }
+      if (pairValue === 6) {
+        if ([2, 3, 4, 5, 6].includes(dealer)) return "庄家弱势，分牌有机会";
+        return "庄家强势，不分牌更安全";
+      }
+      if (pairValue === 5) {
+        if ([2, 3, 4, 5, 6, 7, 8, 9].includes(dealer)) return "庄家弱势，加倍有利";
+        return "庄家强势，要牌更安全";
+      }
+      if ([2, 3, 4].includes(pairValue)) {
+        if ([2, 3, 4, 5, 6, 7].includes(dealer)) return "庄家弱势，分牌有机会";
+        return "庄家强势，不分牌更安全";
+      }
+      return "";
+    }
+
+    function getHardReason(total, dealer) {
+      if (total >= 17) return "17点及以上总是停牌";
+      if (total >= 13 && total <= 16) {
+        if ([2, 3, 4, 5, 6].includes(dealer)) return "庄家弱势，保守停牌";
+        return "庄家强势，必须要牌";
+      }
+      if (total === 12) {
+        if ([4, 5, 6].includes(dealer)) return "庄家最容易爆牌，停牌有利";
+        return "需要改善手牌，要牌";
+      }
+      if (total === 11) return "11点总是加倍，很强";
+      if (total === 10) {
+        if ([2, 3, 4, 5, 6, 7, 8, 9].includes(dealer)) return "庄家弱势，加倍有利";
+        return "庄家强势，要牌更安全";
+      }
+      return "9点及以下总是要牌";
+    }
+
+    function getSoftReason(total, dealer) {
+      if (total >= 19) return "19点及以上总是停牌";
+      if (total === 18) {
+        if ([2, 3, 4, 5, 6].includes(dealer)) return "庄家弱势，停牌有利";
+        if ([7, 8].includes(dealer)) return "需要改善手牌，要牌";
+        return "庄家很强，停牌保守";
+      }
+      if (total >= 16 && total <= 17) {
+        if ([2, 3, 4, 5, 6].includes(dealer)) return "庄家弱势，加倍有利";
+        return "需要改善手牌，要牌";
+      }
+      return "软牌爆牌风险低，要牌";
+    }
+
+    function resetFields() {
+      document.getElementById("playerCards").value = "";
+      document.getElementById("dealerCard").value = "";
+      document.getElementById("output").textContent = "";
+      document.getElementById("details").textContent = "";
+    }
+  </script>
+</body>
+</html>
