@@ -552,8 +552,8 @@
       // 如果已经爆牌，概率为1
       if (currentTotal > 21) return 1;
       
-      // 使用平均牌值6.54进行简化计算
-      const avgCardValue = 6.54;
+      // 使用平均牌值7.31进行简化计算
+      const avgCardValue = 7.31;
       const bustThreshold = 21;
       
       if (isSoft) {
@@ -579,7 +579,7 @@
      */
     function calculateDealerProbabilities(dealerCard) {
       // 使用平均值简化的庄家概率计算
-      const avgCardValue = 6.54;
+      const avgCardValue = 7.31;
       const dealerTarget = 17;
       
       // 基于庄家明牌的简化概率估算
@@ -627,8 +627,12 @@
      * @returns {number} 平均牌值
      */
     function getAverageCardValue() {
-      // 牌组平均值：(2+3+4+5+6)*4 + (7+8+9)*4 + 10*16 + 11*4 / 52
-      return 6.54; // 预计算的平均值
+      // 平均值计算：
+      // 13种牌面值：2,3,4,5,6,7,8,9,10,J,Q,K,A
+      // 对应点数：2,3,4,5,6,7,8,9,10,10,10,10,11
+      // 总和：2+3+4+5+6+7+8+9+10+10+10+10+11 = 95
+      // 平均值：95 ÷ 13 ≈ 7.31
+      return 7.31; // 预计算平均值
     }
 
     /**
@@ -641,7 +645,7 @@
      */
     function calculateWinProbability(playerTotal, isSoft, dealerCard, action) {
       const dealerProbs = calculateDealerProbabilities(dealerCard);
-      const avgCardValue = 6.54;
+      const avgCardValue = 7.31;
       
       if (action === "停牌") {
         // 停牌情况：基于平均值的直接比较
