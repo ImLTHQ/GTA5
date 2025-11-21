@@ -185,27 +185,29 @@
      * - 硬牌：没有A，或所有A都算作1点
      * - 软牌优势：可以安全要牌而不爆牌
      * 
-     * 牌堆说明：牌是无限且随机的，每种牌出现概率都相同
+     * 牌堆说明：简化模型，13种牌面值均匀分布
      * - A: 11点 (可调整为1点)
-     * - 2-10: 对应点数
+     * - 2-10: 对应点数  
      * - J, Q, K: 10点
+     * - 每种牌面值出现概率：1/13 ≈ 7.69%
      */
 
     /**
      * 计算拿一张牌的平均值
-     * 牌是无限且随机的，每种牌出现概率都相同
+     * 简化模型：13种牌面值均匀分布
      * @returns {number} 平均值
      */
     function calculate_average_card_value() {
       // A(11) + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 + J(10) + Q(10) + K(10)
       // = 11 + 2+3+4+5+6+7+8+9+10 + 10+10+10
       // = 11 + 54 + 30 = 95
-      // 13种牌，平均值 = 95/13 ≈ 7.31
+      // 13种牌面值，平均值 = 95/13 ≈ 7.31
       return 95 / 13;
     }
 
     /**
      * 计算拿一张牌后的爆牌概率
+     * 简化模型：13种牌面值均匀分布
      * @param {number[]} currentCards - 当前手牌值数组
      * @returns {number} 爆牌概率 (0-1)
      */
@@ -214,10 +216,10 @@
       const bustCards = [];
       const safeCards = [];
       
-      // 遍历所有可能的牌
-      const allCards = [11, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10]; // A, 2-10, J, Q, K
+      // 简化模型：13种牌面值，每种概率相等
+      const cardValues = [11, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10];
       
-      for (const card of allCards) {
+      for (const card of cardValues) {
         const newCards = [...currentCards, card];
         const { total: newTotal } = calculate_hand_value(newCards);
         
@@ -228,8 +230,9 @@
         }
       }
       
-      return bustCards.length / allCards.length;
+      return bustCards.length / cardValues.length;
     }
+
     function calculate_hand_value(cards) {
       let total = cards.reduce((acc, val) => acc + val, 0);
       let total_aces = cards.filter(val => val === 11).length;
@@ -303,7 +306,7 @@
       const avg_card_value = calculate_average_card_value().toFixed(2);
       
       detail_text = `手牌：${total}点 (${hand_type}${pair_info ? ", " + pair_info : ""}) | 庄家：${dealer}点`;
-      detail_text += ` | 根据平均牌值(${avg_card_value})计算的爆牌概率：${bust_percent}%`;
+      detail_text += ` | 爆牌概率：${bust_percent}% (简化模型仅供参考)`;
 
       // 对子决策优先级最高
       if (is_pair(player)) {
