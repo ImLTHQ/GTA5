@@ -313,10 +313,13 @@
           // 分牌后如果某一侧又形成对子的建议
           const after_split_pair_advice = get_after_split_pair_advice(card1, dealer);
           detail_text += ` | 对子策略：${get_pair_reason(card1, dealer)} | 分牌后若一侧仍为对子：${after_split_pair_advice}`;
+        } else if (pair_advice === "加倍") {
+          advice = "加倍";
+          detail_text += ` | 对子策略：${get_pair_reason(card1, dealer)}`;
         } else {
-          // 对子策略不是分牌时，继续使用硬牌策略
+          // 对子策略不是分牌或加倍时，继续使用硬牌策略
           advice = get_hard_advice(total, dealer);
-          detail_text += ` | 对子策略：${get_pair_reason(card1, dealer)} | 硬牌策略：${get_hard_reason(total, dealer)}`;
+          detail_text += ` | 对子策略：${get_pair_reason(card1, dealer)} | 硬牌策略：${get_hard_reason(total, dealer, player.length)}`;
         }
       }
       
@@ -541,6 +544,9 @@
 
       // 必须要牌
       if ([2, 3, 4].includes(pair_value)) return "要牌";
+      
+      // 默认返回要牌
+      return "要牌";
     }
 
     function get_hard_reason(total, dealer, card_count = 2) {
