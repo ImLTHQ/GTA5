@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>测试爆牌概率</title>
+</head>
+<body>
+    <h1>测试2 2手牌爆牌概率</h1>
+    <div id="result"></div>
+    
+    <script>
+        // 复制爆牌概率计算函数
+        function calculate_bust_probability(current_total, is_soft) {
+          // 如果已经爆牌，概率为1
+          if (current_total > 21) return 1;
+          
+          // 牌组分布：2-6(5种), 7-9(3种), 10/J/Q/K(4种), A(1种)
+          // 对应点数：2,3,4,5,6,7,8,9,10,10,10,10,11
+          const card_values = [2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 11];
+          const total_cards = 52;
+          
+          let bust_count = 0;
+          
+          for (let card of card_values) {
+            let new_total = current_total + card;
+            
+            // 处理软牌情况
+            if (is_soft && new_total > 21) {
+              // 软牌爆牌时，尝试将A从11改为1
+              new_total -= 10;
+            }
+            
+            if (new_total > 21) {
+              bust_count += 1;
+            }
+          }
+          
+          return bust_count / card_values.length;
+        }
+        
+        // 测试2 2手牌
+        const current_total = 4; // 2 + 2 = 4
+        const is_soft = false;
+        const bust_prob = calculate_bust_probability(current_total, is_soft);
+        
+        document.getElementById('result').innerHTML = `
+            <p>手牌：2 2</p>
+            <p>当前点数：${current_total}</p>
+            <p>是否软牌：${is_soft}</p>
+            <p>爆牌概率：${(bust_prob * 100).toFixed(1)}%</p>
+            <p>详细分析：</p>
+            <ul>
+                <li>拿到2：${current_total + 2}点 - 不爆</li>
+                <li>拿到3：${current_total + 3}点 - 不爆</li>
+                <li>拿到4：${current_total + 4}点 - 不爆</li>
+                <li>拿到5：${current_total + 5}点 - 不爆</li>
+                <li>拿到6：${current_total + 6}点 - 不爆</li>
+                <li>拿到7：${current_total + 7}点 - 不爆</li>
+                <li>拿到8：${current_total + 8}点 - 不爆</li>
+                <li>拿到9：${current_total + 9}点 - 不爆</li>
+                <li>拿到10：${current_total + 10}点 - 不爆</li>
+                <li>拿到A：${current_total + 11}点 - 不爆</li>
+            </ul>
+        `;
+    </script>
+</body>
+</html>

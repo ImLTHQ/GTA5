@@ -543,33 +543,60 @@
     }
 
     /**
-     * 计算玩家爆牌概率（使用平均值计算）
-     * @param {number} currentTotal - 当前手牌总点数
-     * @param {boolean} isSoft - 是否为软牌
+     * 计算玩家爆牌概率（基于无限牌组的随机概率）
+     * 
+     * 无限牌组假设：
+     * - 每张牌出现的概率均等，不受已出现牌的影响
+     * - 牌面值分布：2,3,4,5,6,7,8,9,10,J,Q,K,A (13种)
+     * - 对应点数：2,3,4,5,6,7,8,9,10,10,10,10,11
+     * - 注意：10,J,Q,K都是10点，所以10点出现概率更高(4/13)
+     * 
+     * @param {number} current_total - 当前手牌总点数
+     * @param {boolean} is_soft - 是否为软牌
      * @returns {number} 爆牌概率 (0-1之间)
      */
     function calculate_bust_probability(current_total, is_soft) {
-      // 如果已经爆牌，概率为1
+      // 已经爆牌的情况，概率为100%
       if (current_total > 21) return 1;
       
-      // 使用平均牌值7.31进行简化计算
-      const avg_card_value = 7.31;
-      const bust_threshold = 21;
+      // 无限牌组的牌面值和对应概率
+      // 牌面：2,3,4,5,6,7,8,9,10,J,Q,K,A
+      // 点数：2,3,4,5,6,7,8,9,10,10,10,10,11
+      // 概率：每种1/13，但10点有4种牌，所以概率不同
+      const card_distribution = [
+        { value: 2, probability: 1/13 },
+        { value: 3, probability: 1/13 },
+        { value: 4, probability: 1/13 },
+        { value: 5, probability: 1/13 },
+        { value: 6, probability: 1/13 },
+        { value: 7, probability: 1/13 },
+        { value: 8, probability: 1/13 },
+        { value: 9, probability: 1/13 },
+        { value: 10, probability: 4/13 }, // 10,J,Q,K都是10点
+        { value: 11, probability: 1/13 }  // A
+      ];
       
-      if (is_soft) {
-        // 软牌爆牌概率：基于平均值的简化计算
-        const room_to_bust = bust_threshold - current_total;
-        if (room_to_bust >= avg_card_value) return 0.05; // 软牌低点数几乎不会爆
-        if (room_to_bust >= avg_card_value * 0.5) return 0.15; // 中等风险
-        return 0.35; // 高风险
-      } else {
-        // 硬牌爆牌概率：基于平均值的简化计算
-        const room_to_bust = bust_threshold - current_total;
-        if (room_to_bust >= avg_card_value) return 0.08; // 低风险
-        if (room_to_bust >= avg_card_value * 0.5) return 0.25; // 中等风险
-        if (room_to_bust > 0) return 0.55; // 高风险
-        return 0.85; // 极高风险
+      let bust_probability = 0;
+      
+      // 遍历所有可能的下一张牌
+      for (let card of card_distribution) {
+        let new_total = current_total + card.value;
+        
+        // 处理软牌的特殊情况
+        if (is_soft) {
+          // 软牌爆牌时，可以将一个A从11点改为1点（减少10点）
+          if (new_total > 21) {
+            new_total -= 10;
+          }
+        }
+        
+        // 如果调整后的点数仍然爆牌，累加该牌的爆牌概率
+        if (new_total > 21) {
+          bust_probability += card.probability;
+        }
       }
+      
+      return bust_probability;
     }
 
     /**
