@@ -178,13 +178,58 @@
     /**
      * 计算手牌总点数和是否为软牌
      * @param {number[]} cards - 牌值数组
-     * @returns {object} {total: 总点数, isSoft: 是否为软牌}
+     * @returns {object} {total: 总点数, is_soft: 是否为软牌}
      * 
      * 软牌说明：
      * - 软牌：手中有A且A算作11点，总点数不会爆牌
      * - 硬牌：没有A，或所有A都算作1点
      * - 软牌优势：可以安全要牌而不爆牌
+     * 
+     * 牌堆说明：牌是无限且随机的，每种牌出现概率都相同
+     * - A: 11点 (可调整为1点)
+     * - 2-10: 对应点数
+     * - J, Q, K: 10点
      */
+
+    /**
+     * 计算拿一张牌的平均值
+     * 牌是无限且随机的，每种牌出现概率都相同
+     * @returns {number} 平均值
+     */
+    function calculate_average_card_value() {
+      // A(11) + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 + 10 + J(10) + Q(10) + K(10)
+      // = 11 + 2+3+4+5+6+7+8+9+10 + 10+10+10
+      // = 11 + 54 + 30 = 95
+      // 13种牌，平均值 = 95/13 ≈ 7.31
+      return 95 / 13;
+    }
+
+    /**
+     * 计算拿一张牌后的爆牌概率
+     * @param {number[]} currentCards - 当前手牌值数组
+     * @returns {number} 爆牌概率 (0-1)
+     */
+    function calculate_bust_probability(currentCards) {
+      const { total, is_soft } = calculate_hand_value(currentCards);
+      const bustCards = [];
+      const safeCards = [];
+      
+      // 遍历所有可能的牌
+      const allCards = [11, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10]; // A, 2-10, J, Q, K
+      
+      for (const card of allCards) {
+        const newCards = [...currentCards, card];
+        const { total: newTotal } = calculate_hand_value(newCards);
+        
+        if (newTotal > 21) {
+          bustCards.push(card);
+        } else {
+          safeCards.push(card);
+        }
+      }
+      
+      return bustCards.length / allCards.length;
+    }
     function calculate_hand_value(cards) {
       let total = cards.reduce((acc, val) => acc + val, 0);
       let total_aces = cards.filter(val => val === 11).length;
@@ -249,7 +294,16 @@
       // 显示手牌信息
       const hand_type = is_soft ? "软牌" : "硬牌";
       const pair_info = is_pair(player) ? "对子" : "";
+      
+      // 计算爆牌概率
+      const bust_prob = calculate_bust_probability(player);
+      const bust_percent = (bust_prob * 100).toFixed(1);
+      
+      // 计算拿一张牌的平均值
+      const avg_card_value = calculate_average_card_value().toFixed(2);
+      
       detail_text = `手牌：${total}点 (${hand_type}${pair_info ? ", " + pair_info : ""}) | 庄家：${dealer}点`;
+      detail_text += ` | 根据平均牌值(${avg_card_value})计算的爆牌概率：${bust_percent}%`;
 
       // 对子决策优先级最高
       if (is_pair(player)) {
