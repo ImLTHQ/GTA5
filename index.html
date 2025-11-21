@@ -306,7 +306,7 @@
       const avg_card_value = calculate_average_card_value().toFixed(2);
       
       detail_text = `手牌：${total}点 (${hand_type}${pair_info ? ", " + pair_info : ""}) | 庄家：${dealer}点`;
-      detail_text += ` | 爆牌概率：${bust_percent}% (简化模型仅供参考)`;
+      detail_text += ` | 你拿牌的爆牌概率：${bust_percent}% (简化模型仅供参考)`;
 
       // 对子决策优先级最高
       if (is_pair(player)) {
